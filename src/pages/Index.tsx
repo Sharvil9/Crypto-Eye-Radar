@@ -64,6 +64,11 @@ const Index = () => {
     fetchCoinChartData(coin.id);
   };
 
+  // Handle coin click to navigate to detail page
+  const handleCoinClick = (coin: CryptoCoin) => {
+    navigate(`/coin/${coin.id}`);
+  };
+
   // Handle wallet click to view details
   const handleWalletClick = (walletId: string) => {
     navigate(`/wallet/${walletId}`);
@@ -137,6 +142,7 @@ const Index = () => {
               coins={trendingCoins} 
               isLoading={isLoading}
               onSelectCoin={handleSelectCoin}
+              onCoinClick={handleCoinClick}
             />
           </div>
         </div>
