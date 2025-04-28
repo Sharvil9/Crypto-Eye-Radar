@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import WalletCard from '@/components/WalletCard';
 import CoinList from '@/components/CoinList';
 import CoinChart from '@/components/CoinChart';
 import AddWalletModal from '@/components/AddWalletModal';
-import { fetchTrendingCoins, fetchPortfolioSummary, fetchCoinPriceHistory } from '@/utils/cryptoApi';
+import { coinService, walletService } from '@/services';
 import { CryptoCoin, PortfolioSummary, PriceHistoryData } from '@/types';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [trendingCoins, setTrendingCoins] = useState<CryptoCoin[]>([]);
@@ -23,8 +25,8 @@ const Index = () => {
     setIsLoading(true);
     try {
       const [portfolioData, coinsData] = await Promise.all([
-        fetchPortfolioSummary(),
-        fetchTrendingCoins()
+        walletService.getPortfolioSummary(),
+        coinService.getTrendingCoins()
       ]);
       
       setPortfolio(portfolioData);
@@ -47,7 +49,7 @@ const Index = () => {
   const fetchCoinChartData = async (coinId: string) => {
     setIsChartLoading(true);
     try {
-      const data = await fetchCoinPriceHistory(coinId);
+      const data = await coinService.getCoinPriceHistory(coinId);
       setPriceHistory(data);
     } catch (error) {
       console.error('Error fetching price history:', error);
@@ -60,6 +62,11 @@ const Index = () => {
   const handleSelectCoin = (coin: CryptoCoin) => {
     setSelectedCoin(coin);
     fetchCoinChartData(coin.id);
+  };
+
+  // Handle wallet click to view details
+  const handleWalletClick = (walletId: string) => {
+    navigate(`/wallet/${walletId}`);
   };
   
   useEffect(() => {
@@ -98,7 +105,11 @@ const Index = () => {
             ) : portfolio?.wallets && portfolio.wallets.length > 0 ? (
               <div className="space-y-4">
                 {portfolio.wallets.map((wallet) => (
-                  <WalletCard key={wallet.id} wallet={wallet} />
+                  <WalletCard 
+                    key={wallet.id} 
+                    wallet={wallet} 
+                    onClick={() => handleWalletClick(wallet.id)} 
+                  />
                 ))}
               </div>
             ) : (

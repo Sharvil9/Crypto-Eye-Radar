@@ -38,3 +38,33 @@ export interface PriceHistoryData {
   market_caps: [number, number][];
   total_volumes: [number, number][];
 }
+
+export interface TransactionHistory {
+  id: string;
+  walletId: string;
+  coinId: string;
+  type: 'buy' | 'sell' | 'transfer_in' | 'transfer_out';
+  amount: number;
+  value: number;
+  timestamp: number;
+  status: 'completed' | 'pending' | 'failed';
+}
+
+export interface AlertConfig {
+  id: string;
+  coinId: string;
+  condition: 'above' | 'below';
+  price: number;
+  isActive: boolean;
+  createdAt: number;
+}
+
+export interface UserSettings {
+  currency: 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD';
+  theme: 'dark' | 'light';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    priceAlerts: boolean;
+  }
+}
