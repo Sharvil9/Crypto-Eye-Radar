@@ -1,6 +1,6 @@
 
 import { CryptoCoin, PriceHistoryData } from '@/types';
-import { mockCoins, fetchTrendingCoins, fetchCoinPriceHistory } from '@/utils/cryptoApi';
+import { fetchTrendingCoins, fetchCoinPriceHistory } from '@/utils/cryptoApi';
 
 /**
  * Service for handling cryptocurrency data operations
@@ -28,7 +28,9 @@ export const coinService = {
    * @param coinId - The ID of the coin to fetch
    * @returns The coin if found, undefined otherwise
    */
-  getCoinById: (coinId: string): CryptoCoin | undefined => {
-    return mockCoins.find(coin => coin.id === coinId);
+  getCoinById: async (coinId: string): Promise<CryptoCoin | undefined> => {
+    // Fetch all coins and find the one with matching ID
+    const allCoins = await fetchTrendingCoins();
+    return allCoins.find(coin => coin.id === coinId);
   }
 };
