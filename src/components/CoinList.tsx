@@ -8,9 +8,10 @@ interface CoinListProps {
   coins: CryptoCoin[];
   isLoading: boolean;
   onSelectCoin: (coin: CryptoCoin) => void;
+  onCoinClick?: (coin: CryptoCoin) => void;
 }
 
-const CoinList: React.FC<CoinListProps> = ({ coins, isLoading, onSelectCoin }) => {
+const CoinList: React.FC<CoinListProps> = ({ coins, isLoading, onSelectCoin, onCoinClick }) => {
   if (isLoading) {
     return (
       <div className="crypto-card">
@@ -41,7 +42,10 @@ const CoinList: React.FC<CoinListProps> = ({ coins, isLoading, onSelectCoin }) =
           <div 
             key={coin.id}
             className="flex items-center py-3 border-b border-gray-800 hover:bg-gray-800 cursor-pointer transition-colors px-2 -mx-2 rounded"
-            onClick={() => onSelectCoin(coin)}
+            onClick={() => {
+              onSelectCoin(coin);
+              if (onCoinClick) onCoinClick(coin);
+            }}
           >
             <img 
               src={coin.image} 
