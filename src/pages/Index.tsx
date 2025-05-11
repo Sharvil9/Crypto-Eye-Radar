@@ -7,6 +7,7 @@ import WalletCard from '@/components/WalletCard';
 import CoinList from '@/components/CoinList';
 import CoinChart from '@/components/CoinChart';
 import AddWalletModal from '@/components/AddWalletModal';
+import DraggableGrid from '@/components/DraggableGrid';
 import { coinService, walletService } from '@/services';
 import { CryptoCoin, PortfolioSummary, PriceHistoryData } from '@/types';
 
@@ -78,6 +79,77 @@ const Index = () => {
     fetchData();
   }, []);
 
+  // Prepare grid components
+  const dashboardComponent = (
+    <Dashboard 
+      portfolioData={portfolio} 
+      isLoading={isLoading}
+    />
+  );
+
+  const walletsComponent = (
+    <div className="h-full flex flex-col">
+      <h2 className="text-xl font-medium text-gray-200 mb-4">Your Wallets</h2>
+      {isLoading ? (
+        <div className="space-y-4 flex-grow">
+          {[1, 2].map((i) => (
+            <div key={i} className="crypto-card animate-pulse">
+              <div className="h-6 bg-gray-800 rounded-md w-1/3 mb-2"></div>
+              <div className="h-8 bg-gray-800 rounded-md w-2/3 mb-2"></div>
+              <div className="h-4 bg-gray-800 rounded-md w-1/4 mb-2"></div>
+              <div className="h-3 bg-gray-800 rounded-md w-full mt-4"></div>
+            </div>
+          ))}
+        </div>
+      ) : portfolio?.wallets && portfolio.wallets.length > 0 ? (
+        <div className="space-y-4 flex-grow">
+          {portfolio.wallets.map((wallet) => (
+            <WalletCard 
+              key={wallet.id} 
+              wallet={wallet} 
+              onClick={() => handleWalletClick(wallet.id)} 
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex-grow flex flex-col">
+          <p className="text-gray-400 text-center py-8">No wallets added yet</p>
+          <button
+            className="mt-auto py-3 bg-crypto-primary hover:bg-crypto-secondary text-white rounded-md font-medium transition-colors"
+            onClick={() => setIsAddWalletModalOpen(true)}
+          >
+            Add Your First Wallet
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const chartComponent = (
+    <CoinChart 
+      coin={selectedCoin} 
+      priceHistory={priceHistory} 
+      isLoading={isLoading || isChartLoading} 
+    />
+  );
+
+  const coinListComponent = (
+    <CoinList 
+      coins={trendingCoins} 
+      isLoading={isLoading}
+      onSelectCoin={handleSelectCoin}
+      onCoinClick={handleCoinClick}
+    />
+  );
+
+  // Map of grid components
+  const gridComponents = [
+    dashboardComponent,
+    walletsComponent,
+    chartComponent,
+    coinListComponent
+  ];
+
   return (
     <div className="min-h-screen bg-crypto-background text-white">
       <Header 
@@ -87,65 +159,9 @@ const Index = () => {
       />
       
       <main className="container mx-auto py-6 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column: Dashboard & Wallets */}
-          <div className="space-y-6">
-            <Dashboard 
-              portfolioData={portfolio} 
-              isLoading={isLoading}
-            />
-            
-            <h2 className="text-xl font-medium text-gray-200 mt-8 mb-4">Your Wallets</h2>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="crypto-card animate-pulse">
-                    <div className="h-6 bg-gray-800 rounded-md w-1/3 mb-2"></div>
-                    <div className="h-8 bg-gray-800 rounded-md w-2/3 mb-2"></div>
-                    <div className="h-4 bg-gray-800 rounded-md w-1/4 mb-2"></div>
-                    <div className="h-3 bg-gray-800 rounded-md w-full mt-4"></div>
-                  </div>
-                ))}
-              </div>
-            ) : portfolio?.wallets && portfolio.wallets.length > 0 ? (
-              <div className="space-y-4">
-                {portfolio.wallets.map((wallet) => (
-                  <WalletCard 
-                    key={wallet.id} 
-                    wallet={wallet} 
-                    onClick={() => handleWalletClick(wallet.id)} 
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="crypto-card">
-                <p className="text-gray-400 text-center py-8">No wallets added yet</p>
-                <button
-                  className="w-full py-3 bg-crypto-primary hover:bg-crypto-secondary text-white rounded-md font-medium transition-colors"
-                  onClick={() => setIsAddWalletModalOpen(true)}
-                >
-                  Add Your First Wallet
-                </button>
-              </div>
-            )}
-          </div>
-          
-          {/* Middle Column: Chart */}
-          <div className="md:col-span-2 space-y-6">
-            <CoinChart 
-              coin={selectedCoin} 
-              priceHistory={priceHistory} 
-              isLoading={isLoading || isChartLoading} 
-            />
-            
-            <CoinList 
-              coins={trendingCoins} 
-              isLoading={isLoading}
-              onSelectCoin={handleSelectCoin}
-              onCoinClick={handleCoinClick}
-            />
-          </div>
-        </div>
+        <DraggableGrid id="main-dashboard">
+          {gridComponents}
+        </DraggableGrid>
       </main>
       
       {/* Add Wallet Modal */}
