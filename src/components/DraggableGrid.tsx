@@ -4,6 +4,7 @@ import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { useToast } from '@/components/ui/use-toast';
+import '../styles/DraggableGrid.css';
 
 // Enable responsive features
 const ResponsiveGridLayout = WidthProvider(Responsive);
