@@ -4,7 +4,6 @@ import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { useToast } from '@/components/ui/use-toast';
-import '../styles/DraggableGrid.css';
 
 // Enable responsive features
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -57,67 +56,23 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({
     
     if (!children?.length) return layouts;
     
-    // Default layout with uneven box sizes based on content type
-    // First component (Dashboard) - wide
-    // Second component (Wallets) - normal
-    // Third component (Chart) - wide and tall
-    // Fourth component (CoinList) - normal but tall
-    const boxConfigs = [
-      { w: 6, h: 4, x: 0, y: 0 },  // Dashboard - wide
-      { w: 6, h: 4, x: 6, y: 0 },  // Wallets - normal
-      { w: 8, h: 6, x: 0, y: 4 },  // Chart - wide and tall
-      { w: 4, h: 6, x: 8, y: 4 }   // CoinList - normal but tall
-    ];
-    
+    // Default layout configuration
     children.forEach((_, i) => {
-      const config = boxConfigs[i] || { w: 6, h: 4, x: 0, y: Math.floor(i / 2) * 4 };
-      
       const item: LayoutItem = {
         i: `${i}`,
-        x: config.x,
-        y: config.y,
-        w: config.w,
-        h: config.h,
+        x: i % 3 * 4,
+        y: Math.floor(i / 3) * 4,
+        w: 4,
+        h: 4,
         minW: 2,
         minH: 2
       };
       
       layouts.lg.push({ ...item });
-      
-      // Adjust for medium screens (2-column layout)
-      layouts.md.push({
-        ...item,
-        x: i % 2 * 6,
-        y: Math.floor(i / 2) * 4,
-        w: 6,
-      });
-      
-      // Single column for small screens
-      layouts.sm.push({
-        ...item,
-        x: 0,
-        y: i * 4,
-        w: 12,
-        h: Math.min(item.h, 5) // Limit height on small screens
-      });
-      
-      // Extra small screens
-      layouts.xs.push({
-        ...item,
-        x: 0,
-        y: i * 4,
-        w: 12,
-        h: Math.min(item.h, 4)
-      });
-      
-      // Extra extra small screens
-      layouts.xxs.push({
-        ...item,
-        x: 0,
-        y: i * 4,
-        w: 12,
-        h: Math.min(item.h, 4)
-      });
+      layouts.md.push({ ...item, x: i % 2 * 6, w: 6 });
+      layouts.sm.push({ ...item, x: 0, w: 12 });
+      layouts.xs.push({ ...item, x: 0, w: 12 });
+      layouts.xxs.push({ ...item, x: 0, w: 12 });
     });
     
     return layouts;

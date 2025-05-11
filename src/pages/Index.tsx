@@ -79,7 +79,7 @@ const Index = () => {
     fetchData();
   }, []);
 
-  // Prepare grid components with proper height styles to fit the grid
+  // Prepare grid components
   const dashboardComponent = (
     <Dashboard 
       portfolioData={portfolio} 
