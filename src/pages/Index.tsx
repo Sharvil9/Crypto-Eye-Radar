@@ -7,7 +7,11 @@ import WalletCard from '@/components/WalletCard';
 import CoinList from '@/components/CoinList';
 import CoinChart from '@/components/CoinChart';
 import AddWalletModal from '@/components/AddWalletModal';
+import PriceAlerts from '@/components/PriceAlerts';
+import GasFeeTracker from '@/components/GasFeeTracker';
+import CryptoCalendar from '@/components/CryptoCalendar';
 import { coinService, walletService } from '@/services';
+import { enhancedCoinService } from '@/services/enhancedCoinService';
 import { CryptoCoin, PortfolioSummary, PriceHistoryData } from '@/types';
 
 const Index = () => {
@@ -19,15 +23,23 @@ const Index = () => {
   const [priceHistory, setPriceHistory] = useState<PriceHistoryData | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [isAddWalletModalOpen, setIsAddWalletModalOpen] = useState(false);
+  const [useEnhancedApi, setUseEnhancedApi] = useState(true);
 
   // Initial data fetching
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [portfolioData, coinsData] = await Promise.all([
-        walletService.getPortfolioSummary(),
-        coinService.getTrendingCoins()
-      ]);
+      let coinsData;
+      const portfolioData = await walletService.getPortfolioSummary();
+      
+      // Use enhanced API service with fallbacks if enabled
+      if (useEnhancedApi) {
+        coinsData = await enhancedCoinService.getTrendingCoins();
+        console.log('Using enhanced API service with fallbacks');
+      } else {
+        coinsData = await coinService.getTrendingCoins();
+        console.log('Using standard API service');
+      }
       
       setPortfolio(portfolioData);
       setTrendingCoins(coinsData);
@@ -40,6 +52,13 @@ const Index = () => {
       
     } catch (error) {
       console.error('Error fetching data:', error);
+      
+      // If enhanced API failed, try standard API as fallback
+      if (useEnhancedApi) {
+        console.log('Enhanced API failed, falling back to standard API');
+        setUseEnhancedApi(false);
+        fetchData();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,10 +68,24 @@ const Index = () => {
   const fetchCoinChartData = async (coinId: string) => {
     setIsChartLoading(true);
     try {
-      const data = await coinService.getCoinPriceHistory(coinId);
+      let data;
+      
+      // Use enhanced API service with fallbacks if enabled
+      if (useEnhancedApi) {
+        data = await enhancedCoinService.getCoinPriceHistory(coinId);
+      } else {
+        data = await coinService.getCoinPriceHistory(coinId);
+      }
+      
       setPriceHistory(data);
     } catch (error) {
       console.error('Error fetching price history:', error);
+      
+      // If enhanced API failed, try standard API as fallback
+      if (useEnhancedApi) {
+        setUseEnhancedApi(false);
+        fetchCoinChartData(coinId);
+      }
     } finally {
       setIsChartLoading(false);
     }
@@ -88,7 +121,7 @@ const Index = () => {
       
       <main className="container mx-auto py-6 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column: Dashboard & Wallets */}
+          {/* Left Column: Dashboard, Wallets & Price Alerts */}
           <div className="space-y-6">
             <Dashboard 
               portfolioData={portfolio} 
@@ -128,6 +161,11 @@ const Index = () => {
                 </button>
               </div>
             )}
+
+            {/* Price Alerts Component */}
+            <div className="mt-8">
+              <PriceAlerts coins={trendingCoins} />
+            </div>
           </div>
           
           {/* Middle Column: Chart */}
@@ -138,12 +176,20 @@ const Index = () => {
               isLoading={isLoading || isChartLoading} 
             />
             
-            <CoinList 
-              coins={trendingCoins} 
-              isLoading={isLoading}
-              onSelectCoin={handleSelectCoin}
-              onCoinClick={handleCoinClick}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CoinList 
+                coins={trendingCoins} 
+                isLoading={isLoading}
+                onSelectCoin={handleSelectCoin}
+                onCoinClick={handleCoinClick}
+              />
+              
+              {/* Gas Fee Tracker Component */}
+              <GasFeeTracker />
+            </div>
+
+            {/* Crypto Calendar Component */}
+            <CryptoCalendar />
           </div>
         </div>
       </main>
