@@ -1,9 +1,19 @@
 
-import React from 'react';
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import React, { useState } from 'react';
+import { 
+  Area, 
+  AreaChart, 
+  ResponsiveContainer, 
+  XAxis, 
+  YAxis, 
+  Tooltip,
+  CartesianGrid,
+  ReferenceArea 
+} from 'recharts';
 import { CryptoCoin, PriceHistoryData } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ChartContainer } from './ui/chart';
 
 interface CoinChartProps {
   coin: CryptoCoin | null;
@@ -13,6 +23,21 @@ interface CoinChartProps {
 
 const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) => {
   const [timeRange, setTimeRange] = React.useState<'1d'>('1d');
+  
+  // State for zoom functionality
+  const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
+  const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [originalData, setOriginalData] = useState<any[]>([]);
+  const [isZoomed, setIsZoomed] = useState(false);
+  
+  React.useEffect(() => {
+    if (priceHistory) {
+      const data = filterData();
+      setChartData(data);
+      setOriginalData(data);
+    }
+  }, [priceHistory]);
   
   if (isLoading) {
     return (
@@ -35,7 +60,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
   }
 
   // Filter data based on selected time range and ensure consistent data points for better visualization
-  const filterData = () => {
+  function filterData() {
     if (!priceHistory) return [];
     
     const now = Date.now();
@@ -60,8 +85,6 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
     }));
   };
 
-  const chartData = filterData();
-  
   // Check if the coin has increased in value over the selected period
   const startPrice = chartData[0]?.price || 0;
   const endPrice = chartData[chartData.length - 1]?.price || 0;
@@ -76,6 +99,49 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
     return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  // Zoom handling functions
+  const handleMouseDown = (e: any) => {
+    if (!e || !e.activeLabel) return;
+    setRefAreaLeft(e.activeLabel);
+  };
+
+  const handleMouseMove = (e: any) => {
+    if (refAreaLeft && e && e.activeLabel) {
+      setRefAreaRight(e.activeLabel);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (refAreaLeft === refAreaRight || !refAreaRight || !refAreaLeft) {
+      setRefAreaLeft(null);
+      setRefAreaRight(null);
+      return;
+    }
+
+    // Order the selected timestamps
+    let left = Math.min(refAreaLeft, refAreaRight);
+    let right = Math.max(refAreaLeft, refAreaRight);
+
+    // Filter data for zoom
+    const zoomed = originalData.filter(
+      item => item.timestamp >= left && item.timestamp <= right
+    );
+    
+    if (zoomed.length > 0) {
+      setChartData(zoomed);
+      setIsZoomed(true);
+    }
+    
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
+  };
+
+  // Reset zoom
+  const handleResetZoom = () => {
+    setChartData(originalData);
+    setIsZoomed(false);
+  };
+
   return (
     <div className="crypto-card">
       <div className="flex items-center justify-between mb-4">
@@ -88,15 +154,22 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
         </div>
       </div>
       
-      <div className="h-[300px] w-full">
+      <div className="h-[300px] w-full relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
+          <AreaChart 
+            data={chartData}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
             <defs>
               <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={priceColor} stopOpacity={0.3} />
                 <stop offset="95%" stopColor={priceColor} stopOpacity={0} />
               </linearGradient>
             </defs>
+            
+            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
             
             <XAxis 
               dataKey="timestamp" 
@@ -137,11 +210,32 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
               fill="url(#colorPrice)"
               strokeWidth={2}
             />
+            
+            {refAreaLeft && refAreaRight && (
+              <ReferenceArea
+                x1={refAreaLeft}
+                x2={refAreaRight}
+                strokeOpacity={0.3}
+                fillOpacity={0.2}
+                fill={priceColor}
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
+        
+        {isZoomed && (
+          <Button 
+            size="sm"
+            variant="outline"
+            className="absolute right-2 top-2 text-xs bg-crypto-dark/70 border-crypto-primary hover:bg-crypto-primary"
+            onClick={handleResetZoom}
+          >
+            Reset Zoom
+          </Button>
+        )}
       </div>
       
-      <div className="flex justify-center mt-4 gap-2">
+      <div className="flex justify-between mt-4 gap-2">
         <Button 
           size="sm"
           variant="default"
@@ -149,6 +243,10 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
         >
           Last Hours
         </Button>
+        
+        <div className="text-xs text-gray-400 flex items-center">
+          <span>Tip: Click and drag on chart to zoom in</span>
+        </div>
       </div>
     </div>
   );
