@@ -34,7 +34,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
     );
   }
 
-  // Filter data based on selected time range
+  // Filter data based on selected time range with exact day counts
   const filterData = () => {
     if (!priceHistory) return [];
     
@@ -49,9 +49,11 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
         filterTime = now - 7 * 24 * 60 * 60 * 1000;
         break;
       case '30d':
+        // Ensure exactly 30 days
         filterTime = now - 30 * 24 * 60 * 60 * 1000;
         break;
       case '90d':
+        // Ensure exactly 90 days
         filterTime = now - 90 * 24 * 60 * 60 * 1000;
         break;
       default:
@@ -109,7 +111,8 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
                 if (timeRange === '1d') {
                   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 }
-                return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                // Improved date formatting: show day and month name only
+                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
               }}
               tick={{ fill: '#999' }} 
               axisLine={{ stroke: '#555' }}
@@ -130,7 +133,10 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
               contentStyle={{ backgroundColor: '#1E1B2E', border: '1px solid #333', borderRadius: '8px' }}
               labelStyle={{ color: '#fff' }}
               formatter={(value: number) => [`$${value.toLocaleString('en-US', { maximumFractionDigits: 8 })}`, 'Price']}
-              labelFormatter={(label) => new Date(label).toLocaleString()}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+              }}
             />
             
             <Area 

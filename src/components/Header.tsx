@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Wallet, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import CalendarButton from './CalendarButton';
 
 interface HeaderProps {
   onAddWalletClick: () => void;
@@ -34,6 +35,8 @@ const Header: React.FC<HeaderProps> = ({ onAddWalletClick, onRefreshData, isLoad
         </div>
         
         <div className="flex gap-3">
+          <CalendarButton />
+          
           <Button 
             variant="outline" 
             size="sm"

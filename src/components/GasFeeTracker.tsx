@@ -1,171 +1,130 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowDownIcon, ArrowUpIcon, Clock, Info } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Card } from '@/components/ui/card';
 
-interface GasFee {
-  network: string;
-  low: number;
-  average: number;
-  high: number;
-  unit: string;
-  updated: string;
-}
+// Mock gas fee data
+const gasNetworks = [
+  {
+    id: 'ethereum',
+    name: 'Ethereum',
+    congestion: 'Moderate',
+    fees: {
+      low: 25.07,
+      avg: 35.78,
+      high: 45.55
+    }
+  },
+  {
+    id: 'polygon',
+    name: 'Polygon',
+    congestion: 'Moderate',
+    fees: {
+      low: 36.94,
+      avg: 74.34,
+      high: 103.33
+    }
+  },
+  {
+    id: 'arbitrum',
+    name: 'Arbitrum',
+    congestion: 'Low',
+    fees: {
+      low: 0.098,
+      avg: 0.125,
+      high: 0.196
+    }
+  },
+  {
+    id: 'optimism',
+    name: 'Optimism',
+    congestion: 'Low',
+    fees: {
+      low: 0.053,
+      avg: 0.084,
+      high: 0.195
+    }
+  }
+];
 
-const GasFeeTracker = () => {
-  const [gasFees, setGasFees] = useState<GasFee[]>([
-    {
-      network: 'Ethereum',
-      low: 25,
-      average: 35,
-      high: 50,
-      unit: 'gwei',
-      updated: '1 min ago',
-    },
-    {
-      network: 'Polygon',
-      low: 35,
-      average: 75,
-      high: 140,
-      unit: 'gwei',
-      updated: '2 mins ago',
-    },
-    {
-      network: 'Arbitrum',
-      low: 0.1,
-      average: 0.12,
-      high: 0.25,
-      unit: 'gwei',
-      updated: '30 secs ago',
-    },
-    {
-      network: 'Optimism',
-      low: 0.05,
-      average: 0.08,
-      high: 0.15,
-      unit: 'gwei',
-      updated: '1 min ago',
-    },
-  ]);
+const GasFeeTracker: React.FC = () => {
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
-  const [networkCongestion, setNetworkCongestion] = useState({
-    Ethereum: 65,
-    Polygon: 45,
-    Arbitrum: 25,
-    Optimism: 30,
-  });
-  
-  // Simulated data fetching for gas fees
+  // Update the "last updated" timestamp every minute
   useEffect(() => {
-    const simulateGasFeeChanges = () => {
-      setGasFees(prevFees => 
-        prevFees.map(fee => ({
-          ...fee,
-          low: Math.max(fee.low * (0.95 + Math.random() * 0.1), 0.01),
-          average: Math.max(fee.average * (0.95 + Math.random() * 0.1), 0.05),
-          high: Math.max(fee.high * (0.95 + Math.random() * 0.1), 0.1),
-          updated: '1 min ago',
-        }))
-      );
-      
-      setNetworkCongestion(prev => ({
-        Ethereum: Math.min(Math.max(prev.Ethereum + (Math.random() * 10 - 5), 5), 95),
-        Polygon: Math.min(Math.max(prev.Polygon + (Math.random() * 10 - 5), 5), 95),
-        Arbitrum: Math.min(Math.max(prev.Arbitrum + (Math.random() * 10 - 5), 5), 95),
-        Optimism: Math.min(Math.max(prev.Optimism + (Math.random() * 10 - 5), 5), 95),
-      }));
-    };
+    const interval = setInterval(() => {
+      setLastUpdated(new Date());
+    }, 60000);
     
-    const interval = setInterval(simulateGasFeeChanges, 5000);
     return () => clearInterval(interval);
   }, []);
   
-  // Helper to determine gas fee status color
-  const getStatusColor = (congestion: number) => {
-    if (congestion < 30) return 'text-green-500';
-    if (congestion < 70) return 'text-yellow-500';
-    return 'text-red-500';
+  // Calculate minutes since last update
+  const getMinutesSinceUpdate = () => {
+    const now = new Date();
+    const diffMs = now.getTime() - lastUpdated.getTime();
+    const diffMins = Math.round(diffMs / 60000);
+    return diffMins;
   };
   
-  // Helper to determine congestion status
-  const getCongestionStatus = (congestion: number) => {
-    if (congestion < 30) return 'Low';
-    if (congestion < 70) return 'Moderate';
-    return 'High';
+  // Get class based on congestion level
+  const getCongestionClass = (level: string) => {
+    switch(level.toLowerCase()) {
+      case 'high':
+        return 'text-red-400';
+      case 'moderate':
+        return 'text-yellow-400';
+      case 'low':
+        return 'text-green-400';
+      default:
+        return 'text-gray-400';
+    }
   };
-
-  // Helper to determine progress bar color
-  const getProgressColor = (congestion: number) => {
-    if (congestion < 30) return 'bg-green-500';
-    if (congestion < 70) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
+  
   return (
-    <div className="bg-gray-800 rounded-xl p-4 shadow-lg">
+    <div className="crypto-card">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-white">Gas Fee Tracker</h2>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info size={18} className="text-gray-400 cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-xs text-sm">
-                Gas fees represent the cost to perform transactions on blockchain networks.
-                Lower fees = cheaper transactions. Values update every 5 seconds.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <h2 className="text-lg font-medium text-gray-200">Gas Fee Tracker</h2>
+        <div className="text-xs text-gray-400">{getMinutesSinceUpdate()} min ago</div>
       </div>
       
       <div className="space-y-4">
-        {gasFees.map((fee) => (
-          <div key={fee.network} className="bg-gray-700/50 rounded-lg p-3">
+        {gasNetworks.map((network) => (
+          <div key={network.id} className="bg-gray-800 bg-opacity-50 p-3 rounded-md">
             <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center">
-                <div className={`h-3 w-3 rounded-full ${getStatusColor(networkCongestion[fee.network as keyof typeof networkCongestion])} mr-2`}></div>
-                <h3 className="font-medium text-white">{fee.network}</h3>
-              </div>
-              <div className="flex items-center text-xs text-gray-400">
-                <Clock size={12} className="mr-1" />
-                <span>{fee.updated}</span>
+              <div className="font-medium">{network.name}</div>
+              <div className="text-xs text-gray-400">{getMinutesSinceUpdate()} min ago</div>
+            </div>
+            
+            <div className="mb-1">
+              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                <div 
+                  className="h-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-500"
+                  style={{ width: `${Math.min(100, network.fees.avg)}%` }}
+                ></div>
               </div>
             </div>
             
-            <div className="mb-3">
-              <Progress 
-                value={networkCongestion[fee.network as keyof typeof networkCongestion]} 
-                className="h-2 bg-gray-600"
-              />
+            <div className="flex justify-between text-xs">
+              <div>
+                <span className="text-gray-400 mr-1">Low</span>
+                <span className="text-green-400">{network.fees.low.toFixed(2)}</span>
+                <span className="text-gray-500 ml-1">gwei</span>
+              </div>
+              <div>
+                <span className="text-gray-400 mr-1">Avg</span>
+                <span className="text-yellow-400">{network.fees.avg.toFixed(2)}</span>
+                <span className="text-gray-500 ml-1">gwei</span>
+              </div>
+              <div>
+                <span className="text-gray-400 mr-1">High</span>
+                <span className="text-red-400">{network.fees.high.toFixed(2)}</span>
+                <span className="text-gray-500 ml-1">gwei</span>
+              </div>
             </div>
             
-            <div className="flex justify-between items-center">
-              <div className="text-sm">
-                <span className="text-gray-400">Congestion:</span>
-                <span className={`ml-1 ${getStatusColor(networkCongestion[fee.network as keyof typeof networkCongestion])}`}>
-                  {getCongestionStatus(networkCongestion[fee.network as keyof typeof networkCongestion])}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div className="text-xs text-gray-400">Low</div>
-                  <div className="font-medium text-green-500">{fee.low} {fee.unit}</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-xs text-gray-400">Avg</div>
-                  <div className="font-medium text-yellow-500">{fee.average} {fee.unit}</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-xs text-gray-400">High</div>
-                  <div className="font-medium text-red-500">{fee.high} {fee.unit}</div>
-                </div>
-              </div>
+            <div className="mt-1 flex justify-between items-center text-xs">
+              <span className="text-gray-400">Congestion:</span>
+              <span className={getCongestionClass(network.congestion)}>{network.congestion}</span>
             </div>
           </div>
         ))}
