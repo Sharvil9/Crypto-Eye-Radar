@@ -34,7 +34,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
     );
   }
 
-  // Filter data based on selected time range with exact day counts
+  // Filter data based on selected time range and ensure consistent data points for better visualization
   const filterData = () => {
     if (!priceHistory) return [];
     
@@ -49,18 +49,25 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
         filterTime = now - 7 * 24 * 60 * 60 * 1000;
         break;
       case '30d':
-        // Ensure exactly 30 days
         filterTime = now - 30 * 24 * 60 * 60 * 1000;
         break;
       case '90d':
-        // Ensure exactly 90 days
         filterTime = now - 90 * 24 * 60 * 60 * 1000;
         break;
       default:
         filterTime = now - 7 * 24 * 60 * 60 * 1000;
     }
     
-    const filteredPrices = priceHistory.prices.filter(([timestamp]) => timestamp >= filterTime);
+    // Get filtered data
+    let filteredPrices = priceHistory.prices.filter(([timestamp]) => timestamp >= filterTime);
+    
+    // Ensure we have reasonable number of data points for better visualization
+    const maxDataPoints = timeRange === '1d' ? 24 : timeRange === '7d' ? 28 : timeRange === '30d' ? 30 : 90;
+    
+    if (filteredPrices.length > maxDataPoints) {
+      const interval = Math.floor(filteredPrices.length / maxDataPoints);
+      filteredPrices = filteredPrices.filter((_, index) => index % interval === 0);
+    }
     
     return filteredPrices.map(([timestamp, price]) => ({
       timestamp,
@@ -79,6 +86,13 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
   
   const priceColor = isPositive ? "#00E396" : "#FF4560"; // Green for positive, red for negative
 
+  // Format price for display with appropriate decimal places
+  const formatPrice = (price: number) => {
+    if (price < 0.01) return price.toLocaleString('en-US', { maximumFractionDigits: 8 });
+    if (price < 1) return price.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   return (
     <div className="crypto-card">
       <div className="flex items-center justify-between mb-4">
@@ -87,10 +101,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
           <h2 className="text-lg font-medium text-white">{coin.name} Price Chart</h2>
         </div>
         <div className={`text-lg font-bold ${isPositive ? 'positive-value' : 'negative-value'}`}>
-          ${coin.current_price.toLocaleString('en-US', { 
-            minimumFractionDigits: 2,
-            maximumFractionDigits: coin.current_price < 0.01 ? 8 : 2
-          })}
+          ${formatPrice(coin.current_price)}
         </div>
       </div>
       
@@ -110,29 +121,42 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
                 const date = new Date(timestamp);
                 if (timeRange === '1d') {
                   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else if (timeRange === '7d') {
+                  return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
+                } else {
+                  // For 30d and 90d, just show day and month
+                  return date.getDate().toString();
                 }
-                // Improved date formatting: show day and month name only
-                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
               }}
               tick={{ fill: '#999' }} 
               axisLine={{ stroke: '#555' }}
               tickLine={{ stroke: '#555' }}
+              minTickGap={15}
+              label={
+                timeRange === '30d' || timeRange === '90d' 
+                  ? { 
+                      value: 'Day of Month', 
+                      position: 'insideBottomRight', 
+                      offset: -5, 
+                      fill: '#999'
+                    } 
+                  : undefined
+              }
             />
             
             <YAxis 
               domain={['auto', 'auto']} 
-              tickFormatter={(value) => `$${value.toLocaleString('en-US', { 
-                maximumFractionDigits: 2
-              })}`}
+              tickFormatter={(value) => `$${formatPrice(value)}`}
               tick={{ fill: '#999' }} 
               axisLine={{ stroke: '#555' }}
               tickLine={{ stroke: '#555' }}
+              width={80}
             />
             
             <Tooltip
               contentStyle={{ backgroundColor: '#1E1B2E', border: '1px solid #333', borderRadius: '8px' }}
               labelStyle={{ color: '#fff' }}
-              formatter={(value: number) => [`$${value.toLocaleString('en-US', { maximumFractionDigits: 8 })}`, 'Price']}
+              formatter={(value: number) => [`$${formatPrice(value)}`, 'Price']}
               labelFormatter={(label) => {
                 const date = new Date(label);
                 return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;

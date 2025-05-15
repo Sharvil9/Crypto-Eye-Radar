@@ -9,7 +9,6 @@ import CoinChart from '@/components/CoinChart';
 import AddWalletModal from '@/components/AddWalletModal';
 import PriceAlerts from '@/components/PriceAlerts';
 import GasFeeTracker from '@/components/GasFeeTracker';
-import CryptoCalendar from '@/components/CryptoCalendar';
 import { coinService, walletService } from '@/services';
 import { enhancedCoinService } from '@/services/enhancedCoinService';
 import { CryptoCoin, PortfolioSummary, PriceHistoryData } from '@/types';
@@ -187,9 +186,6 @@ const Index = () => {
               {/* Gas Fee Tracker Component */}
               <GasFeeTracker />
             </div>
-
-            {/* Crypto Calendar Component */}
-            <CryptoCalendar />
           </div>
         </div>
       </main>
