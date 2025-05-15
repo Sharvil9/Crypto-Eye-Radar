@@ -12,7 +12,7 @@ interface CoinChartProps {
 }
 
 const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) => {
-  const [timeRange, setTimeRange] = React.useState<'1d' | '7d' | '30d' | '90d'>('7d');
+  const [timeRange, setTimeRange] = React.useState<'1d'>('1d');
   
   if (isLoading) {
     return (
@@ -39,30 +39,13 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
     if (!priceHistory) return [];
     
     const now = Date.now();
-    let filterTime;
-    
-    switch(timeRange) {
-      case '1d':
-        filterTime = now - 24 * 60 * 60 * 1000;
-        break;
-      case '7d':
-        filterTime = now - 7 * 24 * 60 * 60 * 1000;
-        break;
-      case '30d':
-        filterTime = now - 30 * 24 * 60 * 60 * 1000;
-        break;
-      case '90d':
-        filterTime = now - 90 * 24 * 60 * 60 * 1000;
-        break;
-      default:
-        filterTime = now - 7 * 24 * 60 * 60 * 1000;
-    }
+    let filterTime = now - 24 * 60 * 60 * 1000; // Default to 24 hours
     
     // Get filtered data
     let filteredPrices = priceHistory.prices.filter(([timestamp]) => timestamp >= filterTime);
     
     // Ensure we have reasonable number of data points for better visualization
-    const maxDataPoints = timeRange === '1d' ? 24 : timeRange === '7d' ? 28 : timeRange === '30d' ? 30 : 90;
+    const maxDataPoints = 24; // For 24 hours view
     
     if (filteredPrices.length > maxDataPoints) {
       const interval = Math.floor(filteredPrices.length / maxDataPoints);
@@ -119,29 +102,12 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
               dataKey="timestamp" 
               tickFormatter={(timestamp) => {
                 const date = new Date(timestamp);
-                if (timeRange === '1d') {
-                  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                } else if (timeRange === '7d') {
-                  return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
-                } else {
-                  // For 30d and 90d, just show day and month
-                  return date.getDate().toString();
-                }
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
               }}
               tick={{ fill: '#999' }} 
               axisLine={{ stroke: '#555' }}
               tickLine={{ stroke: '#555' }}
               minTickGap={15}
-              label={
-                timeRange === '30d' || timeRange === '90d' 
-                  ? { 
-                      value: 'Day of Month', 
-                      position: 'insideBottomRight', 
-                      offset: -5, 
-                      fill: '#999'
-                    } 
-                  : undefined
-              }
             />
             
             <YAxis 
@@ -159,7 +125,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
               formatter={(value: number) => [`$${formatPrice(value)}`, 'Price']}
               labelFormatter={(label) => {
                 const date = new Date(label);
-                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
               }}
             />
             
@@ -178,35 +144,10 @@ const CoinChart: React.FC<CoinChartProps> = ({ coin, priceHistory, isLoading }) 
       <div className="flex justify-center mt-4 gap-2">
         <Button 
           size="sm"
-          variant={timeRange === '1d' ? 'default' : 'outline'}
-          className={`text-xs ${timeRange === '1d' ? 'bg-crypto-primary' : 'bg-transparent border-gray-700'}`}
-          onClick={() => setTimeRange('1d')}
+          variant="default"
+          className="text-xs bg-crypto-primary"
         >
-          1D
-        </Button>
-        <Button 
-          size="sm"
-          variant={timeRange === '7d' ? 'default' : 'outline'}
-          className={`text-xs ${timeRange === '7d' ? 'bg-crypto-primary' : 'bg-transparent border-gray-700'}`}
-          onClick={() => setTimeRange('7d')}
-        >
-          7D
-        </Button>
-        <Button 
-          size="sm"
-          variant={timeRange === '30d' ? 'default' : 'outline'}
-          className={`text-xs ${timeRange === '30d' ? 'bg-crypto-primary' : 'bg-transparent border-gray-700'}`}
-          onClick={() => setTimeRange('30d')}
-        >
-          30D
-        </Button>
-        <Button 
-          size="sm"
-          variant={timeRange === '90d' ? 'default' : 'outline'}
-          className={`text-xs ${timeRange === '90d' ? 'bg-crypto-primary' : 'bg-transparent border-gray-700'}`}
-          onClick={() => setTimeRange('90d')}
-        >
-          90D
+          Last Hours
         </Button>
       </div>
     </div>
