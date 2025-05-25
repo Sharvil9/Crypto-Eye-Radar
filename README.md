@@ -7,6 +7,8 @@ CryptoEye isn't just another crypto tracker - it's your personal financial DJ, m
 
 <ins> Whether you're HODLing Bitcoin like it's your firstborn or gambling on that new meme coin (we won't judge... much), CryptoEye has your back with real-time tracking that even your most financially responsible friend would approve of. </ins>
 
+![Crypto Eye Radar](crypto-eye-radar.png)
+
 ## ✨ Features That Make You Go "Woah!"
 
 - **Portfolio Dashboard**: Track all your crypto assets in one place - because spreadsheets are so 2010.
