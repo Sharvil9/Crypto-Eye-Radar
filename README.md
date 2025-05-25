@@ -104,12 +104,12 @@ CryptoEye Radar follows a modular, component-driven architecture:
 
 ```mermaid
 flowchart TD
-    A[User Interface (React)] --> B[State Management (React Query)]
-    B --> C[API Services (CoinGecko, Wallet APIs)]
-    C --> D[Portfolio Logic & Analytics]
-    D --> E[Visualization (Charts, Tables)]
-    A --> F[Notifications & Alerts]
-    B --> G[Routing (React Router)]
+    UI(User Interface) --> State(State Management)
+    State --> API(API Services)
+    API --> Logic(Portfolio Logic & Analytics)
+    Logic --> Viz(Visualization)
+    UI --> Notify(Notifications & Alerts)
+    State --> Router(Routing)
 ```
 
 **Design Decisions & Trade-offs:**
