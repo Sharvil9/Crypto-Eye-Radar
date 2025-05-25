@@ -5,7 +5,7 @@
 
 CryptoEye isn't just another crypto tracker - it's your personal financial DJ, mixing live market data with your portfolio to create the sweetest investment symphony you've ever heard! 
 
-Whether you're HODLing Bitcoin like it's your firstborn or gambling on that new meme coin (we won't judge... much), CryptoEye has your back with real-time tracking that even your most financially responsible friend would approve of.
+<ins> Whether you're HODLing Bitcoin like it's your firstborn or gambling on that new meme coin (we won't judge... much), CryptoEye has your back with real-time tracking that even your most financially responsible friend would approve of. </ins>
 
 ## ✨ Features That Make You Go "Woah!"
 
@@ -29,3 +29,13 @@ Remember: Not financial advice... but definitely financial entertainment!
 Ready to transform from crypto-curious to crypto-confident? Dive in and let CryptoEye be your guide through the wild west of digital assets!
 
 *May your wallets be heavy and your taxes be light.*
+
+##  How to Run?
+
+**Step 1:** Download the Zip file by clicking the "Code" button.
+**Step 2:** Open the extracted folder -> Click on the file path above -> Type "cmd" press Enter.
+**Step 3:** Have Node.js installed on your machine.
+**Step 4:** npm install
+**Step 5:** npm run dev
+And **"ctrl + click"** whichever link you want.
+**Also next time you wanna access it, just after Step 2 paste** "npm run preview"
